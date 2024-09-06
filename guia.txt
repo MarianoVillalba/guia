@@ -1,0 +1,101 @@
+--Crear base de datos
+
+CREATE DATABASE bdguia;
+
+--Creacion de tablas
+CREATE TABLE Estudiantes (
+    id_estudiante SERIAL PRIMARY KEY,
+    nombre VARCHAR(50),
+    apellido VARCHAR(50),
+    edad INT
+);
+
+-- 2
+CREATE TABLE Cursos (
+    id_curso SERIAL PRIMARY KEY,
+    nombre_curso VARCHAR(50),
+    descripcion TEXT
+);
+ 
+
+-- 3
+CREATE TABLE Inscripciones (
+    id_estudiante INT,
+    id_curso INT,
+    PRIMARY KEY (id_estudiante, id_curso),
+    FOREIGN KEY (id_estudiante) REFERENCES Estudiantes(id_estudiante),
+    FOREIGN KEY (id_curso) REFERENCES Cursos(id_curso) 
+);
+
+
+
+
+--INSERTS
+INSERT INTO Estudiantes (nombre, apellido, edad)
+VALUES 
+('Julian', 'Alvarez', 21),
+('Camila', 'Nocito', 22),
+('Carlos', 'Gardel', 23);
+
+INSERT INTO Cursos (nombre_curso, descripcion)
+VALUES
+('Matemáticas', 'Curso de matemáticas'),
+('Programación', 'Curso de programación');
+
+INSERT INTO Inscripciones (id_estudiante, id_curso)
+VALUES
+(1, 1), -- Julian se inscribe en Matemáticas
+(2, 1), -- Camila se inscribe en Matemáticas
+(3, 2), -- Carlos se inscribe en Programación
+(1, 2); -- Julian también se inscribe en Programación
+
+
+--ALTER
+ALTER TABLE Estudiantes
+ADD COLUMN email VARCHAR(50);
+
+ALTER TABLE Estudiantes
+ALTER COLUMN edad TYPE SMALLINT;
+
+ALTER TABLE Cursos
+DROP COLUMN descripcion;
+
+
+--Subconsultas 
+SELECT nombre_curso
+FROM Cursos
+WHERE id_curso IN (
+    SELECT id_curso
+    FROM Inscripciones
+    WHERE id_estudiante = 1
+);
+
+
+SELECT nombre, apellido
+FROM Estudiantes
+WHERE id_estudiante IN (
+    SELECT id_estudiante
+    FROM Inscripciones
+    GROUP BY id_estudiante
+    HAVING COUNT(id_curso) > 1
+);
+
+
+--Funciones
+CREATE OR REPLACE FUNCTION calcular_edad_promedio()
+RETURNS NUMERIC AS
+$$
+SELECT AVG(edad)
+FROM Estudiantes;
+$$
+LANGUAGE SQL;
+
+SELECT calcular_edad_promedio() AS edad_promedio;
+
+
+
+
+
+
+	
+
