@@ -1,0 +1,99 @@
+CREATE TABLE Estudiantes (
+    id_estudiante SERIAL PRIMARY KEY,
+    nombre VARCHAR(50),
+    apellido VARCHAR(50),
+    edad INT
+);
+
+
+CREATE TABLE Cursos (
+    id_curso SERIAL PRIMARY KEY,
+    nombre_curso VARCHAR(50),
+    descripcion TEXT
+);
+
+CREATE TABLE Inscripciones (
+    id_estudiante INT,
+    id_curso INT,
+    PRIMARY KEY (id_estudiante, id_curso)
+) ENGINE=InnoDB;
+
+ALTER TABLE inscripciones 
+ADD FOREIGN KEY (id_estudiante) REFERENCES estudiantes(id_estudiante);
+
+ALTER TABLE inscripciones
+ADD FOREIGN KEY (id_curso) REFERENCES cursos(id_curso);
+
+
+
+TRUNCATE TABLE Estudiantes;
+TRUNCATE TABLE Cursos;
+TRUNCATE TABLE Inscripciones;
+Luego, inserta los datos sin especificar el campo id (clave primaria), ya que MySQL lo generará automáticamente:
+
+
+INSERT INTO Estudiantes (nombre, apellido, edad)
+VALUES 
+('Julian', 'Alvarez', 21),
+('Camila', 'Nocito', 22),
+('Carlos', 'Gardel', 23);
+
+INSERT INTO Cursos (nombre_curso, descripcion)
+VALUES
+('Matemáticas', 'Curso de matemáticas'),
+('Programación', 'Curso de programación');
+
+INSERT IGNORE INTO Inscripciones (id_estudiante, id_curso)
+VALUES
+(1, 1), -- Julian se inscribe en Matemáticas
+(2, 1), -- Camila se inscribe en Matemáticas
+(3, 2), -- Carlos se inscribe en Programación
+(1, 2); -- Julian también se inscribe en Programación
+
+
+ALTER TABLE Estudiantes
+ADD COLUMN email VARCHAR(50);
+
+ALTER TABLE Estudiantes
+MODIFY COLUMN edad SMALLINT;
+
+ALTER TABLE Cursos
+DROP COLUMN descripcion;
+
+
+SELECT nombre_curso
+FROM Cursos
+WHERE id_curso IN (
+    SELECT id_curso
+    FROM Inscripciones
+    WHERE id_estudiante = 1
+);
+
+
+SELECT nombre, apellido
+FROM Estudiantes
+WHERE id_estudiante IN (
+    SELECT id_estudiante
+    FROM Inscripciones
+    GROUP BY id_estudiante
+    HAVING COUNT(id_curso) > 1
+);
+
+
+DELIMITER $$
+
+CREATE FUNCTION calcular_edad_promedio()
+RETURNS DECIMAL(5,2)
+DETERMINISTIC
+BEGIN
+    DECLARE promedio DECIMAL(5,2);
+    
+    SELECT AVG(edad) INTO promedio
+    FROM Estudiantes;
+    
+    RETURN promedio;
+END $$
+
+DELIMITER ;
+
+SELECT calcular_edad_promedio() AS edad_promedio;
